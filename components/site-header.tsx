@@ -9,7 +9,7 @@ export function SiteHeader({ email }: { email?: string | null }) {
   const router = useRouter();
 
   async function signOut() {
-    const supabase = createClient();
+    const supabase = await createClient();
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();

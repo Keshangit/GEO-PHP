@@ -1,6 +1,31 @@
 # Railway deploy — WC GEO Web (Next.js)
 
-## Login stuck on "Please wait…"
+## Build failed: `NEXT_PUBLIC_SUPABASE_URL missing`
+
+**Your Variables are set correctly** — Railway just does not expose them to Docker `RUN` steps unless the Dockerfile declares matching **`ARG`** lines. This project now includes those ARG declarations.
+
+**Fix:** Push the latest code and **Redeploy** (new build). No need to re-enter variables.
+
+### Variable format (still important)
+
+```env
+# Correct — no trailing slash
+NEXT_PUBLIC_SUPABASE_URL=https://rayhwxxfrovabuhblqhz.supabase.co
+
+# Also works (normalized in app) but prefer no slash
+NEXT_PUBLIC_SUPABASE_URL=https://rayhwxxfrovabuhblqhz.supabase.co/
+```
+
+### How Railway + Docker works
+
+| When | Where vars apply |
+|------|------------------|
+| **Docker build** | Passed as `--build-arg` when Dockerfile has `ARG NEXT_PUBLIC_*` |
+| **Container runtime** | All service Variables on the running app (server routes, `/api/public-config`) |
+
+Browser auth uses **`/api/public-config`** at runtime if build-time inlining is empty — so login works as long as Variables exist on the **GEO-PHP** service at runtime.
+
+## Login stuck on "Please wait…" (older builds)
 
 **Cause:** `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` were not set during **Docker build**. Next.js bakes them into client JS at build time — runtime-only vars on Railway are too late.
 

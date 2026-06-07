@@ -10,10 +10,17 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Railway injects service variables into the build environment automatically.
-# Do NOT use ARG→ENV here — empty ARG overwrites Railway's build env and breaks client auth.
-RUN test -n "$NEXT_PUBLIC_SUPABASE_URL" || (echo "ERROR: NEXT_PUBLIC_SUPABASE_URL missing — set in Railway Variables and redeploy" && exit 1)
-RUN test -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" || (echo "ERROR: NEXT_PUBLIC_SUPABASE_ANON_KEY missing — set in Railway Variables and redeploy" && exit 1)
+# Railway passes service Variables as Docker --build-arg when names match these ARG lines.
+# Without ARG declarations, RUN/npm build cannot see dashboard Variables.
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
 RUN npm run build
 

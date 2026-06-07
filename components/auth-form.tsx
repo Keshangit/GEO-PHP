@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import { getAppOrigin, isSupabaseConfigured } from "@/lib/supabase/env";
+import { createClient, isSupabaseConfiguredAsync } from "@/lib/supabase/client";
+import { getAppOrigin } from "@/lib/supabase/env";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +34,7 @@ export function AuthForm({ mode, error }: AuthFormProps) {
   const [configOk, setConfigOk] = useState(true);
 
   useEffect(() => {
-    setConfigOk(isSupabaseConfigured());
+    isSupabaseConfiguredAsync().then(setConfigOk);
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -42,7 +42,7 @@ export function AuthForm({ mode, error }: AuthFormProps) {
     setLoading(true);
     setMessage("");
 
-    if (!isSupabaseConfigured()) {
+    if (!(await isSupabaseConfiguredAsync())) {
       setMessage(
         "Auth is misconfigured on this deployment. Contact support or redeploy with Supabase env vars at build time."
       );
@@ -51,7 +51,7 @@ export function AuthForm({ mode, error }: AuthFormProps) {
     }
 
     try {
-      const supabase = createClient();
+      const supabase = await createClient();
 
       const authPromise =
         mode === "login"
