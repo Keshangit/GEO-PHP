@@ -188,14 +188,13 @@ export default function AuditDetailPage({
       />
 
       {audit.status === "failed" && audit.error_message && (
-        <Alert variant="destructive">
-          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+        <Alert variant="destructive" className="border-red-200 bg-red-50">
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3 text-red-800">
             <span>{audit.error_message}</span>
             {(audit.unlocked || audit.tier === "paid") && (
               <Button
                 size="sm"
-                variant="outline"
-                className="border-white/40 bg-white/10 text-white hover:bg-white/20"
+                className="btn-brand shrink-0"
                 onClick={retryReport}
                 disabled={retryLoading}
               >
