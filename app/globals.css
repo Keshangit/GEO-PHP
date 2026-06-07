@@ -111,4 +111,30 @@
   .brand-header {
     @apply border-b border-[#0a2347] bg-[#0b2a5b] text-white;
   }
+
+  .report-loading-track {
+    @apply relative h-2 w-full overflow-hidden rounded-full bg-[#eef3f9];
+  }
+
+  .report-loading-bar {
+    @apply absolute top-0 h-full w-2/5 rounded-full;
+    background: linear-gradient(90deg, #3eb1f1 0%, #ee810a 100%);
+    animation: report-loading-slide 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes report-loading-slide {
+  0% {
+    left: -40%;
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    left: 100%;
+    opacity: 0.6;
+  }
 }

@@ -180,17 +180,6 @@ export default function AuditDetailPage({
       {!audit.unlocked && audit.tier !== "paid" && audit.quick_score != null && (
         <UpsellBlur auditId={audit.id} domain={audit.domain} />
       )}
-
-      {audit.unlocked &&
-        audit.status !== "completed" &&
-        !audit.full_report &&
-        audit.status !== "failed" && (
-          <Alert>
-            <AlertDescription>
-              Full report unlocked — generation in progress.
-            </AlertDescription>
-          </Alert>
-        )}
     </div>
   );
 }
