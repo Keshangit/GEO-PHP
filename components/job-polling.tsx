@@ -12,7 +12,7 @@ interface JobPollingProps {
   onUpdate?: () => void;
 }
 
-const activeStatuses: AuditStatus[] = ["queued", "processing", "pending"];
+const activeStatuses = ["queued", "processing", "pending"] as const;
 
 const statusLabels: Record<(typeof activeStatuses)[number], string> = {
   pending: "Starting",
@@ -26,6 +26,10 @@ const statusMessages: Record<(typeof activeStatuses)[number], string> = {
   processing: "Crawling pages, scoring citability, and building your report.",
 };
 
+function isActiveStatus(status: AuditStatus): status is (typeof activeStatuses)[number] {
+  return (activeStatuses as readonly AuditStatus[]).includes(status);
+}
+
 export function JobPolling({ auditId, initialStatus, onUpdate }: JobPollingProps) {
   const [status, setStatus] = useState(initialStatus);
 
@@ -34,14 +38,14 @@ export function JobPolling({ auditId, initialStatus, onUpdate }: JobPollingProps
   }, [initialStatus]);
 
   useEffect(() => {
-    if (!activeStatuses.includes(status)) return;
+    if (!isActiveStatus(status)) return;
 
     const interval = setInterval(async () => {
       const res = await fetch(`/api/audits/${auditId}`);
       if (!res.ok) return;
       const data = await res.json();
       setStatus(data.status);
-      if (!activeStatuses.includes(data.status)) {
+      if (!isActiveStatus(data.status)) {
         onUpdate?.();
       }
     }, 15_000);
@@ -49,9 +53,9 @@ export function JobPolling({ auditId, initialStatus, onUpdate }: JobPollingProps
     return () => clearInterval(interval);
   }, [auditId, status, onUpdate]);
 
-  if (!activeStatuses.includes(status)) return null;
+  if (!isActiveStatus(status)) return null;
 
-  const activeStatus = status as (typeof activeStatuses)[number];
+  const activeStatus = status;
 
   return (
     <Card className="glass-card border-[#3eb1f1]/30">
