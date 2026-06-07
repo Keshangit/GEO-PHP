@@ -11,10 +11,10 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-teal-950/20">
+    <div className="min-h-screen bg-brand-navy">
       <SiteHeader email={user?.email} />
       <main className="mx-auto flex max-w-6xl flex-col items-center px-6 py-20 text-center">
-        <p className="mb-4 text-sm uppercase tracking-widest text-teal-500">
+        <p className="mb-4 text-sm uppercase tracking-widest text-accent">
           Web Consulting Agency
         </p>
         <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
@@ -26,7 +26,7 @@ export default async function HomePage() {
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <Link href={user ? "/scan" : "/signup"}>
-            <Button size="lg" className="bg-teal-600 hover:bg-teal-500">
+            <Button size="lg" className="btn-brand">
               {user ? "Run free scan" : "Get started free"}
             </Button>
           </Link>

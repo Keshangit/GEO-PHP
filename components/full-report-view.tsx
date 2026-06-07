@@ -36,7 +36,7 @@ function ActionList({
 export function FullReportView({ report }: FullReportViewProps) {
   return (
     <div className="space-y-6">
-      <Card className="glass-card border-teal-500/30">
+      <Card className="glass-card border-primary/30">
         <CardHeader>
           <CardTitle className="text-3xl">
             {report.brand_name} · GEO Score {report.geo_score}/100
@@ -54,7 +54,7 @@ export function FullReportView({ report }: FullReportViewProps) {
               <p className="text-sm capitalize text-muted-foreground">
                 {key.replace(/_/g, " ")}
               </p>
-              <p className="text-3xl font-bold text-teal-400">{value}</p>
+              <p className="text-3xl font-bold text-primary">{value}</p>
             </CardContent>
           </Card>
         ))}

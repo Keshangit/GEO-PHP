@@ -42,7 +42,7 @@ export default async function DashboardPage() {
           <p className="text-muted-foreground">Your GEO audit history</p>
         </div>
         <Link href="/scan">
-          <Button className="bg-teal-600 hover:bg-teal-500">New scan</Button>
+          <Button className="btn-brand">New scan</Button>
         </Link>
       </div>
 
@@ -67,7 +67,7 @@ export default async function DashboardPage() {
           {!audits?.length ? (
             <p className="text-sm text-muted-foreground">
               No audits yet.{" "}
-              <Link href="/scan" className="text-teal-500 hover:underline">
+              <Link href="/scan" className="text-link">
                 Run your first scan
               </Link>
             </p>
@@ -88,7 +88,7 @@ export default async function DashboardPage() {
                     <TableCell>
                       <Link
                         href={`/audits/${audit.id}`}
-                        className="font-medium text-teal-500 hover:underline"
+                        className="font-medium text-link"
                       >
                         {audit.domain}
                       </Link>

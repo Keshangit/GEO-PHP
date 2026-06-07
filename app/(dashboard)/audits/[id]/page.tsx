@@ -100,34 +100,32 @@ export default function AuditDetailPage({
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Link href="/dashboard" className="text-sm text-teal-500 hover:underline">
+          <Link href="/dashboard" className="text-sm text-link">
             ← Dashboard
           </Link>
           <h1 className="mt-2 text-3xl font-bold">{audit.domain}</h1>
           <p className="text-sm text-muted-foreground">{audit.url}</p>
         </div>
         {audit.status === "completed" && audit.pdf_path && (
-          <Button onClick={downloadReport} className="bg-teal-600 hover:bg-teal-500">
+          <Button onClick={downloadReport} className="btn-brand">
             Download PDF
           </Button>
         )}
       </div>
 
       {audit.quick_score != null && (
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 xl:grid-cols-3">
           <AuditScoreCard
             score={audit.quick_score}
             tier={tier}
             breakdown={scoreMeta?.breakdown}
           />
-          <div className="lg:col-span-2">
-            {summary && (
-              <QuickWinsList
-                wins={summary.quick_wins ?? []}
-                insights={summary.insights}
-              />
-            )}
-          </div>
+          {summary && (
+            <QuickWinsList
+              wins={summary.quick_wins ?? []}
+              insights={summary.insights}
+            />
+          )}
         </div>
       )}
 

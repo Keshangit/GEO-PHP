@@ -71,7 +71,7 @@ export default function ScanPage() {
             )}
             <Button
               type="submit"
-              className="w-full bg-teal-600 hover:bg-teal-500"
+              className="btn-brand w-full"
               disabled={loading}
             >
               {loading ? "Scanning… (up to 60s)" : "Run free scan"}

@@ -12,7 +12,7 @@ const tierLabels: Record<ScoreTier, string> = {
 
 const tierColors: Record<ScoreTier, string> = {
   excellent: "bg-emerald-500/20 text-emerald-400",
-  good: "bg-teal-500/20 text-teal-400",
+  good: "bg-brand-blue/20 text-brand-blue",
   fair: "bg-amber-500/20 text-amber-400",
   poor: "bg-orange-500/20 text-orange-400",
   critical: "bg-red-500/20 text-red-400",
@@ -32,7 +32,7 @@ export function AuditScoreCard({ score, tier = "fair", breakdown }: AuditScoreCa
   const rotation = -45 + Math.round((score / 100) * 147);
 
   return (
-    <Card className="glass-card border-t-2 border-teal-500/50">
+    <Card className="glass-card border-t-2 border-primary/50">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">GEO Visibility Score</CardTitle>
         <Badge className={tierColors[tier]}>{tierLabels[tier]}</Badge>
@@ -41,10 +41,10 @@ export function AuditScoreCard({ score, tier = "fair", breakdown }: AuditScoreCa
         <div className="relative flex h-40 w-40 items-end justify-center">
           <div className="absolute inset-0 rounded-full border-8 border-muted" />
           <div
-            className="absolute bottom-0 left-1/2 h-20 w-1 origin-bottom bg-teal-500"
+            className="absolute bottom-0 left-1/2 h-20 w-1 origin-bottom bg-primary"
             style={{ transform: `translateX(-50%) rotate(${rotation}deg)` }}
           />
-          <span className="relative pb-2 text-5xl font-bold text-teal-400">{score}</span>
+          <span className="relative pb-2 text-5xl font-bold text-primary">{score}</span>
         </div>
         {breakdown && (
           <div className="grid w-full grid-cols-3 gap-3 text-center text-sm">

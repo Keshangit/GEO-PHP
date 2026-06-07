@@ -43,7 +43,7 @@ export function JobPolling({ auditId, initialStatus, onUpdate }: JobPollingProps
     status === "queued" ? 25 : status === "processing" ? 65 : 10;
 
   return (
-    <Card className="glass-card border-teal-500/30">
+    <Card className="glass-card border-primary/30">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           Generating full report

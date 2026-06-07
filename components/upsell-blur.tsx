@@ -43,13 +43,13 @@ export function UpsellBlur({ auditId, domain }: UpsellBlurProps) {
         </p>
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-black/50 p-6 text-center">
-        <Lock className="mb-4 h-12 w-12 text-teal-400" />
+        <Lock className="mb-4 h-12 w-12 text-accent" />
         <p className="mb-4 text-lg">
           Unlock the complete PDF report for <strong>{domain}</strong>
         </p>
         <Button
           size="lg"
-          className="bg-teal-600 px-8 hover:bg-teal-500"
+          className="btn-brand px-8"
           onClick={handleCheckout}
           disabled={loading}
         >

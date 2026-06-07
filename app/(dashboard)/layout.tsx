@@ -17,7 +17,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-teal-950/10">
+    <div className="min-h-screen bg-brand-navy">
       <SiteHeader email={user.email} />
       <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
     </div>

@@ -21,7 +21,7 @@ export function QuickWinsList({
   insights?: string[];
 }) {
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="contents">
       <Card className="glass-card">
         <CardHeader>
           <CardTitle>Quick Wins</CardTitle>
@@ -53,7 +53,7 @@ export function QuickWinsList({
             <ul className="space-y-3 text-sm text-muted-foreground">
               {insights.map((insight, index) => (
                 <li key={index} className="flex gap-2">
-                  <span className="text-teal-500">•</span>
+                  <span className="text-accent">•</span>
                   <span>{insight}</span>
                 </li>
               ))}

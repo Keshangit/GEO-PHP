@@ -16,10 +16,10 @@ export function SiteHeader({ email }: { email?: string | null }) {
   }
 
   return (
-    <header className="border-b border-border/60 bg-card/50 backdrop-blur-md">
+    <header className="border-b border-white/10 bg-brand-navy/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="text-lg font-semibold tracking-tight">
-          WC <span className="text-teal-500">GEO</span> Audit
+          WC <span className="text-primary">GEO</span> Audit
         </Link>
         <nav className="flex items-center gap-4 text-sm">
           {email ? (

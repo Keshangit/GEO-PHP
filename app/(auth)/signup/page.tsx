@@ -9,7 +9,7 @@ export default async function SignupPage({
   const params = await searchParams;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-teal-950/20">
+    <div className="min-h-screen bg-brand-navy">
       <SiteHeader />
       <main className="mx-auto flex max-w-6xl justify-center px-6 py-16">
         <AuthForm mode="signup" error={params.error} />

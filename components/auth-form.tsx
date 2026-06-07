@@ -97,7 +97,7 @@ export function AuthForm({ mode, error }: AuthFormProps) {
   }
 
   return (
-    <Card className="glass-card w-full max-w-md border-teal-500/20">
+    <Card className="glass-card w-full max-w-md border-primary/30">
       <CardHeader>
         <CardTitle>{mode === "login" ? "Welcome back" : "Create account"}</CardTitle>
         <CardDescription>
@@ -158,7 +158,7 @@ export function AuthForm({ mode, error }: AuthFormProps) {
           )}
           <Button
             type="submit"
-            className="w-full bg-teal-600 hover:bg-teal-500"
+            className="btn-brand w-full"
             disabled={loading || !configOk}
           >
             {loading ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
@@ -168,14 +168,14 @@ export function AuthForm({ mode, error }: AuthFormProps) {
           {mode === "login" ? (
             <>
               No account?{" "}
-              <Link href="/signup" className="text-teal-500 hover:underline">
+              <Link href="/signup" className="text-link">
                 Sign up
               </Link>
             </>
           ) : (
             <>
               Already registered?{" "}
-              <Link href="/login" className="text-teal-500 hover:underline">
+              <Link href="/login" className="text-link">
                 Log in
               </Link>
             </>
