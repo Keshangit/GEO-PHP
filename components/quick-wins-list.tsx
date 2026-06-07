@@ -7,10 +7,16 @@ interface QuickWin {
   priority?: "critical" | "high" | "medium";
 }
 
-const priorityColors = {
-  critical: "bg-red-500/20 text-red-400",
-  high: "bg-orange-500/20 text-orange-400",
-  medium: "bg-amber-500/20 text-amber-400",
+const priorityLabels: Record<NonNullable<QuickWin["priority"]>, string> = {
+  critical: "Critical",
+  high: "High",
+  medium: "Medium",
+};
+
+const priorityColors: Record<NonNullable<QuickWin["priority"]>, string> = {
+  critical: "border-red-300 bg-red-100 text-red-800",
+  high: "border-orange-300 bg-orange-100 text-orange-900",
+  medium: "border-amber-300 bg-amber-100 text-amber-900",
 };
 
 export function QuickWinsList({
@@ -35,7 +41,9 @@ export function QuickWinsList({
               <div className="mb-2 flex items-center justify-between gap-2">
                 <p className="font-medium">{win.action}</p>
                 {win.priority && (
-                  <Badge className={priorityColors[win.priority]}>{win.priority}</Badge>
+                  <Badge variant="outline" className={priorityColors[win.priority]}>
+                    {priorityLabels[win.priority]}
+                  </Badge>
                 )}
               </div>
               <p className="text-sm text-muted-foreground">{win.impact}</p>

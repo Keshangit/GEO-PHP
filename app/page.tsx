@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-shell">
       <SiteHeader email={user?.email} />
       <main className="mx-auto flex max-w-6xl flex-col items-center px-6 py-20 text-center">
         <p className="mb-4 text-sm uppercase tracking-widest text-brand-orange">

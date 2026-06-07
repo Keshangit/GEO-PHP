@@ -47,7 +47,7 @@ export default async function DashboardPage() {
       </div>
 
       {cooldown.active && (
-        <Alert>
+        <Alert className="border-[#3eb1f1]/40 bg-[#e8f4fc]">
           <AlertTitle>Free scan cooldown active</AlertTitle>
           <AlertDescription>
             Next free audit available{" "}
