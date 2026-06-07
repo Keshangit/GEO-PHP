@@ -26,6 +26,7 @@ interface AuditDetail {
   domain: string;
   tier: string;
   status: string;
+  ops_job_id: string | null;
   quick_score: number | null;
   quick_summary: StoredQuickSummary | null;
   full_report: FullAuditReport | null;
@@ -53,6 +54,7 @@ export default function AuditDetailPage({
   const [error, setError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
+  const [retryLoading, setRetryLoading] = useState(false);
 
   const loadAudit = useCallback(async (id: string) => {
     const res = await fetch(`/api/audits/${id}`);
@@ -72,6 +74,23 @@ export default function AuditDetailPage({
       loadAudit(id);
     });
   }, [params, loadAudit]);
+
+  async function retryReport() {
+    if (!auditId) return;
+    setRetryLoading(true);
+    try {
+      const res = await fetch(`/api/audits/${auditId}/retry`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Retry failed");
+      }
+      setAudit(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Retry failed");
+    } finally {
+      setRetryLoading(false);
+    }
+  }
 
   async function downloadReport() {
     if (!auditId || !audit) return;
@@ -164,12 +183,26 @@ export default function AuditDetailPage({
       <JobPolling
         auditId={audit.id}
         initialStatus={audit.status as AuditStatus}
+        opsJobId={audit.ops_job_id}
         onUpdate={() => loadAudit(audit.id)}
       />
 
       {audit.status === "failed" && audit.error_message && (
         <Alert variant="destructive">
-          <AlertDescription>{audit.error_message}</AlertDescription>
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+            <span>{audit.error_message}</span>
+            {(audit.unlocked || audit.tier === "paid") && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-white/40 bg-white/10 text-white hover:bg-white/20"
+                onClick={retryReport}
+                disabled={retryLoading}
+              >
+                {retryLoading ? "Retrying…" : "Retry report"}
+              </Button>
+            )}
+          </AlertDescription>
         </Alert>
       )}
 

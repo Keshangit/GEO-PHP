@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/api/auth";
-import { ensureFullAuditEnqueued } from "@/lib/audits/ensure-enqueued";
+import { retryFullAuditEnqueue } from "@/lib/audits/ensure-enqueued";
 import { syncAuditFromOpsJob } from "@/lib/audits/sync-job";
 import type { AuditRecord } from "@/lib/types/audit";
 
-export async function GET(
+export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -23,25 +23,35 @@ export async function GET(
     return NextResponse.json({ error: "Audit not found." }, { status: 404 });
   }
 
-  let record = audit as AuditRecord;
+  if (audit.tier !== "paid") {
+    return NextResponse.json(
+      { error: "Unlock this domain before retrying the full report." },
+      { status: 400 }
+    );
+  }
 
-  if (record.tier === "paid" && !record.ops_job_id && record.status !== "completed") {
-    try {
-      record = await ensureFullAuditEnqueued(record);
-    } catch (e) {
-      console.error("Enqueue ensure failed:", e);
-    }
+  if (audit.status === "completed") {
+    return NextResponse.json({ error: "Report is already complete." }, { status: 400 });
+  }
+
+  let record: AuditRecord;
+  try {
+    record = await retryFullAuditEnqueue(audit as AuditRecord);
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Retry failed" },
+      { status: 500 }
+    );
   }
 
   if (
-    record.tier === "paid" &&
     record.ops_job_id &&
     !["completed", "failed"].includes(record.status)
   ) {
     try {
       record = await syncAuditFromOpsJob(record);
     } catch (e) {
-      console.error("Job sync failed:", e);
+      console.error("Job sync failed after retry:", e);
     }
   }
 

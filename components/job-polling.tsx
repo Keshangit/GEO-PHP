@@ -9,6 +9,7 @@ import type { AuditStatus } from "@/lib/types/audit";
 interface JobPollingProps {
   auditId: string;
   initialStatus: AuditStatus;
+  opsJobId?: string | null;
   onUpdate?: () => void;
 }
 
@@ -30,7 +31,12 @@ function isActiveStatus(status: AuditStatus): status is (typeof activeStatuses)[
   return (activeStatuses as readonly AuditStatus[]).includes(status);
 }
 
-export function JobPolling({ auditId, initialStatus, onUpdate }: JobPollingProps) {
+export function JobPolling({
+  auditId,
+  initialStatus,
+  opsJobId = null,
+  onUpdate,
+}: JobPollingProps) {
   const [status, setStatus] = useState(initialStatus);
 
   useEffect(() => {
@@ -54,6 +60,24 @@ export function JobPolling({ auditId, initialStatus, onUpdate }: JobPollingProps
   }, [auditId, status, onUpdate]);
 
   if (!isActiveStatus(status)) return null;
+
+  if (!opsJobId && status === "queued") {
+    return (
+      <Card className="glass-card border-[#3eb1f1]/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-[#0b2a5b]">
+            <Loader2 className="h-5 w-5 animate-spin text-[#3eb1f1]" aria-hidden />
+            Starting full report
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Connecting to the report service…
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const activeStatus = status;
 
