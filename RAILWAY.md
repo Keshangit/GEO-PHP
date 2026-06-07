@@ -39,6 +39,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklmnop.supabase.co
 
 # Wrong — causes "Invalid path specified in request URL"
 NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklmnop.supabase.co/
+NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklmnop.supabase.co/rest/v1/
 NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklmnop.supabase.co/auth/v1
 NEXT_PUBLIC_SUPABASE_URL=https://your-app.up.railway.app
 ```

@@ -1,17 +1,23 @@
 /**
  * Normalize public Supabase project URL.
- * Must be https://PROJECT_REF.supabase.co with NO trailing slash and NO /auth/v1.
+ * Must be https://PROJECT_REF.supabase.co — no /rest/v1, /auth/v1, or trailing slash.
  */
 export function normalizeSupabaseUrl(raw: string): string {
-  let url = raw.trim();
+  const trimmed = raw.trim();
 
-  // Remove trailing slashes
-  url = url.replace(/\/+$/, "");
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.hostname.endsWith(".supabase.co")) {
+      // Always project root — pasting REST/Auth API URLs breaks browser auth
+      return parsed.origin;
+    }
+  } catch {
+    // fall through
+  }
 
-  // Common mistake: pasting the auth API URL instead of project URL
-  url = url.replace(/\/auth\/v1$/i, "");
-
-  return url;
+  let url = trimmed.replace(/\/+$/, "");
+  url = url.replace(/\/(?:auth|rest|storage|functions)\/v1$/i, "");
+  return url.replace(/\/+$/, "");
 }
 
 /** NEXT_PUBLIC_* vars are inlined at `next build` — must be set during Docker build on Railway. */
