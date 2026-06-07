@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,8 @@ interface AuthFormProps {
   error?: string;
 }
 
+const AUTH_TIMEOUT_MS = 30_000;
+
 export function AuthForm({ mode, error }: AuthFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -28,46 +31,69 @@ export function AuthForm({ mode, error }: AuthFormProps) {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(error ?? "");
+  const [configOk, setConfigOk] = useState(true);
+
+  useEffect(() => {
+    setConfigOk(isSupabaseConfigured());
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
-    const supabase = createClient();
-
-    if (mode === "login") {
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (authError) {
-        setMessage(authError.message);
-        setLoading(false);
-        return;
-      }
-      router.push("/dashboard");
-      router.refresh();
-      return;
-    }
-
-    const { error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (authError) {
-      setMessage(authError.message);
+    if (!isSupabaseConfigured()) {
+      setMessage(
+        "Auth is misconfigured on this deployment. Contact support or redeploy with Supabase env vars at build time."
+      );
       setLoading(false);
       return;
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    try {
+      const supabase = createClient();
+
+      const authPromise =
+        mode === "login"
+          ? supabase.auth.signInWithPassword({ email, password })
+          : supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                data: { full_name: fullName },
+                emailRedirectTo: `${window.location.origin}/auth/callback`,
+              },
+            });
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                "Sign-in timed out. Check Supabase URL in Railway build vars and Supabase Auth redirect URLs."
+              )
+            ),
+          AUTH_TIMEOUT_MS
+        );
+      });
+
+      const { error: authError } = await Promise.race([
+        authPromise,
+        timeoutPromise,
+      ]);
+
+      if (authError) {
+        setMessage(authError.message);
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Authentication failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -81,6 +107,16 @@ export function AuthForm({ mode, error }: AuthFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {!configOk && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>
+              Supabase public keys are missing from this build. Set{" "}
+              <code className="text-xs">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
+              <code className="text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> in
+              Railway Variables, then redeploy.
+            </AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === "signup" && (
             <div className="space-y-2">
@@ -120,7 +156,11 @@ export function AuthForm({ mode, error }: AuthFormProps) {
               <AlertDescription>{message}</AlertDescription>
             </Alert>
           )}
-          <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-500" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full bg-teal-600 hover:bg-teal-500"
+            disabled={loading || !configOk}
+          >
             {loading ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
           </Button>
         </form>
