@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WC GEO Web — Next.js Dashboard
 
-## Getting Started
+GEO Audit SaaS product layer for [Web Consulting Agency](https://webconsulting.ie).
 
-First, run the development server:
+- **Frontend:** Next.js App Router + Supabase Auth
+- **Engine:** [wc-geo-ops](https://wc-geo-ops-production.up.railway.app) on Railway
+- **Database:** Supabase PostgreSQL
+- **Deploy:** Railway (`Dockerfile` + `railway.toml`)
+
+## Quick start
 
 ```bash
+cp .env.local.example .env.local
+# Fill in Supabase + OPS_API_KEY
+
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Apply migrations via Supabase CLI or SQL editor (`supabase/migrations/`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create Storage bucket `reports` (see `003_storage_reports.sql`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Routes
 
-## Learn More
+| Route | Description |
+|-------|-------------|
+| `/` | Marketing landing |
+| `/login`, `/signup` | Auth |
+| `/dashboard` | Audit history |
+| `/scan` | Free quick scan |
+| `/audits/[id]` | Results + upsell + full report |
 
-To learn more about Next.js, take a look at the following resources:
+## Railway deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Connect repo to Railway as a new web service
+2. Set env vars from `.env.local.example`
+3. Custom domain: `app.webconsulting.ie`
+4. Stripe webhook: `https://app.webconsulting.ie/api/webhooks/stripe`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API (BFF)
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `GET /api/health` — Railway healthcheck
+- `GET /api/user/status` — Cooldown + unlocked domains
+- `POST /api/audits/quick` — Free scan (48h cooldown)
+- `POST /api/audits/checkout` — Stripe €9 unlock
+- `POST /api/webhooks/stripe` — Payment → full audit
+- `GET /api/audits/[id]` — Audit detail + job sync
+- `GET /api/audits/[id]/report` — PDF signed URL
