@@ -11,10 +11,10 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   return (
-    <div className="min-h-screen bg-brand-navy">
+    <div className="min-h-screen bg-background">
       <SiteHeader email={user?.email} />
       <main className="mx-auto flex max-w-6xl flex-col items-center px-6 py-20 text-center">
-        <p className="mb-4 text-sm uppercase tracking-widest text-accent">
+        <p className="mb-4 text-sm uppercase tracking-widest text-brand-orange">
           Web Consulting Agency
         </p>
         <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">

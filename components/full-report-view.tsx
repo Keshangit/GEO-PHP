@@ -1,4 +1,6 @@
+import { Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FullAuditReport } from "@/lib/types/audit";
@@ -11,6 +13,8 @@ const severityColors = {
 
 interface FullReportViewProps {
   report: FullAuditReport;
+  onDownload?: () => void;
+  pdfLoading?: boolean;
 }
 
 function ActionList({
@@ -33,14 +37,24 @@ function ActionList({
   );
 }
 
-export function FullReportView({ report }: FullReportViewProps) {
+export function FullReportView({ report, onDownload, pdfLoading }: FullReportViewProps) {
   return (
     <div className="space-y-6">
-      <Card className="glass-card border-primary/30">
-        <CardHeader>
-          <CardTitle className="text-3xl">
+      <Card className="glass-card border-brand-blue/40">
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <CardTitle className="text-3xl text-brand-navy">
             {report.brand_name} · GEO Score {report.geo_score}/100
           </CardTitle>
+          {onDownload && (
+            <Button
+              className="btn-brand shrink-0"
+              onClick={onDownload}
+              disabled={pdfLoading}
+            >
+              <Download className="size-4" />
+              {pdfLoading ? "Generating…" : "Download PDF"}
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <p className="leading-relaxed text-muted-foreground">{report.executive_summary}</p>
@@ -54,7 +68,7 @@ export function FullReportView({ report }: FullReportViewProps) {
               <p className="text-sm capitalize text-muted-foreground">
                 {key.replace(/_/g, " ")}
               </p>
-              <p className="text-3xl font-bold text-primary">{value}</p>
+              <p className="text-3xl font-bold text-brand-orange">{value}</p>
             </CardContent>
           </Card>
         ))}

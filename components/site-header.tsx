@@ -16,7 +16,7 @@ export function SiteHeader({ email }: { email?: string | null }) {
   }
 
   return (
-    <header className="border-b border-white/10 bg-brand-navy/95 backdrop-blur-md">
+    <header className="border-b border-border bg-card/95 shadow-sm backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="text-lg font-semibold tracking-tight">
           WC <span className="text-primary">GEO</span> Audit

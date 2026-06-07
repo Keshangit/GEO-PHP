@@ -51,6 +51,8 @@ export default function AuditDetailPage({
   const [audit, setAudit] = useState<AuditDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState("");
 
   const loadAudit = useCallback(async (id: string) => {
     const res = await fetch(`/api/audits/${id}`);
@@ -72,11 +74,26 @@ export default function AuditDetailPage({
   }, [params, loadAudit]);
 
   async function downloadReport() {
-    if (!auditId) return;
-    const res = await fetch(`/api/audits/${auditId}/report`);
-    const data = await res.json();
-    if (data.download_url) {
-      window.open(data.download_url, "_blank");
+    if (!auditId || !audit) return;
+    setPdfLoading(true);
+    setPdfError("");
+    try {
+      const res = await fetch(`/api/audits/${auditId}/report`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Download failed");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `WebConsulting-GEO-${audit.domain}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setPdfError(e instanceof Error ? e.message : "Download failed");
+    } finally {
+      setPdfLoading(false);
     }
   }
 
@@ -92,6 +109,11 @@ export default function AuditDetailPage({
     );
   }
 
+  const canDownloadPdf =
+    audit.status === "completed" &&
+    audit.full_report != null &&
+    (audit.unlocked || audit.tier === "paid");
+
   const summary = audit.quick_summary;
   const scoreMeta = summary?.score;
   const tier = scoreMeta?.tier ?? scoreTierFromValue(audit.quick_score ?? 0);
@@ -106,12 +128,22 @@ export default function AuditDetailPage({
           <h1 className="mt-2 text-3xl font-bold">{audit.domain}</h1>
           <p className="text-sm text-muted-foreground">{audit.url}</p>
         </div>
-        {audit.status === "completed" && audit.pdf_path && (
-          <Button onClick={downloadReport} className="btn-brand">
-            Download PDF
+        {canDownloadPdf && (
+          <Button
+            onClick={downloadReport}
+            className="btn-brand"
+            disabled={pdfLoading}
+          >
+            {pdfLoading ? "Generating PDF…" : "Download PDF Report"}
           </Button>
         )}
       </div>
+
+      {pdfError && (
+        <Alert variant="destructive">
+          <AlertDescription>{pdfError}</AlertDescription>
+        </Alert>
+      )}
 
       {audit.quick_score != null && (
         <div className="grid gap-6 xl:grid-cols-3">
@@ -142,7 +174,7 @@ export default function AuditDetailPage({
       )}
 
       {audit.full_report && audit.status === "completed" && (
-        <FullReportView report={audit.full_report} />
+        <FullReportView report={audit.full_report} onDownload={canDownloadPdf ? downloadReport : undefined} pdfLoading={pdfLoading} />
       )}
 
       {!audit.unlocked && audit.tier !== "paid" && audit.quick_score != null && (

@@ -42,8 +42,8 @@ export function UpsellBlur({ auditId, domain }: UpsellBlurProps) {
           (ChatGPT, Perplexity, Google AIO), 30-day action plan, and client-ready PDF report…
         </p>
       </div>
-      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-black/50 p-6 text-center">
-        <Lock className="mb-4 h-12 w-12 text-accent" />
+      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-brand-navy/75 p-6 text-center text-white">
+        <Lock className="mb-4 h-12 w-12 text-brand-blue" />
         <p className="mb-4 text-lg">
           Unlock the complete PDF report for <strong>{domain}</strong>
         </p>
@@ -55,7 +55,7 @@ export function UpsellBlur({ auditId, domain }: UpsellBlurProps) {
         >
           {loading ? "Redirecting…" : "Unlock for €9"}
         </Button>
-        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+        {error && <p className="mt-3 text-sm text-red-200">{error}</p>}
       </div>
     </section>
   );
