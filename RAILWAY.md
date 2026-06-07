@@ -22,12 +22,28 @@
 
 Supabase Dashboard → **Authentication** → **URL Configuration**:
 
-| Field | Value |
-|-------|--------|
-| Site URL | `https://your-app.up.railway.app` |
-| Redirect URLs | `https://your-app.up.railway.app/auth/callback` |
+| Field | Value | Common mistake |
+|-------|--------|----------------|
+| **Site URL** | `https://your-app.up.railway.app` | Do NOT use `*.supabase.co` here |
+| **Redirect URLs** | `https://your-app.up.railway.app/auth/callback` | Must match exactly (add `http://localhost:3000/auth/callback` for local) |
 
-Add `http://localhost:3000/auth/callback` for local dev.
+Also add wildcard for previews if needed: `https://your-app.up.railway.app/**`
+
+### `NEXT_PUBLIC_SUPABASE_URL` format
+
+Must be **only** the project root — no path suffix:
+
+```env
+# Correct
+NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklmnop.supabase.co
+
+# Wrong — causes "Invalid path specified in request URL"
+NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklmnop.supabase.co/
+NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklmnop.supabase.co/auth/v1
+NEXT_PUBLIC_SUPABASE_URL=https://your-app.up.railway.app
+```
+
+Find the correct value in Supabase → **Project Settings** → **API** → **Project URL**.
 
 ## Server-only variables (runtime OK)
 

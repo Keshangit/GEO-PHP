@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { getAppOrigin, isSupabaseConfigured } from "@/lib/supabase/env";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,7 +61,7 @@ export function AuthForm({ mode, error }: AuthFormProps) {
               password,
               options: {
                 data: { full_name: fullName },
-                emailRedirectTo: `${window.location.origin}/auth/callback`,
+                emailRedirectTo: `${getAppOrigin()}/auth/callback`,
               },
             });
 

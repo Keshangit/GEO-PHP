@@ -4,7 +4,10 @@ import type {
   QuickAuditResponse,
 } from "@/lib/types/audit";
 
-const BASE = process.env.OPS_API_BASE_URL ?? "http://127.0.0.1:8000";
+const BASE = (process.env.OPS_API_BASE_URL ?? "http://127.0.0.1:8000").replace(
+  /\/+$/,
+  ""
+);
 const KEY = process.env.OPS_API_KEY ?? "";
 
 async function opsFetch(path: string, init?: RequestInit) {
