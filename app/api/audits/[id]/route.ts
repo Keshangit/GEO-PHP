@@ -27,7 +27,7 @@ export async function GET(
 
   if (record.tier === "paid" && !record.ops_job_id && record.status !== "completed") {
     try {
-      record = await ensureFullAuditEnqueued(record);
+      record = await ensureFullAuditEnqueued(record, supabase);
     } catch (e) {
       console.error("Enqueue ensure failed:", e);
     }
@@ -39,7 +39,7 @@ export async function GET(
     !["completed", "failed"].includes(record.status)
   ) {
     try {
-      record = await syncAuditFromOpsJob(record);
+      record = await syncAuditFromOpsJob(record, supabase);
     } catch (e) {
       console.error("Job sync failed:", e);
     }

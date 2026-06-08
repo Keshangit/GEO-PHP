@@ -36,7 +36,7 @@ export async function POST(
 
   let record: AuditRecord;
   try {
-    record = await retryFullAuditEnqueue(audit as AuditRecord);
+    record = await retryFullAuditEnqueue(audit as AuditRecord, supabase);
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Retry failed" },
@@ -49,7 +49,7 @@ export async function POST(
     !["completed", "failed"].includes(record.status)
   ) {
     try {
-      record = await syncAuditFromOpsJob(record);
+      record = await syncAuditFromOpsJob(record, supabase);
     } catch (e) {
       console.error("Job sync failed after retry:", e);
     }

@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { startFullAudit } from "@/lib/geo-ops/client";
 import type { AuditRecord } from "@/lib/types/audit";
@@ -11,8 +12,28 @@ function enqueueErrorMessage(error: unknown): string {
   return raw;
 }
 
+async function updateAuditRow(
+  client: SupabaseClient,
+  auditId: string,
+  updates: Record<string, unknown>
+): Promise<AuditRecord> {
+  const { data, error } = await client
+    .from("audits")
+    .update(updates)
+    .eq("id", auditId)
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? "Failed to update audit");
+  }
+
+  return data as AuditRecord;
+}
+
 export async function ensureFullAuditEnqueued(
-  audit: AuditRecord
+  audit: AuditRecord,
+  client: SupabaseClient
 ): Promise<AuditRecord> {
   if (
     audit.tier !== "paid" ||
@@ -23,70 +44,51 @@ export async function ensureFullAuditEnqueued(
     return audit;
   }
 
-  const admin = createAdminClient();
-
   try {
     const job = await startFullAudit(audit.url, audit.domain, audit.id);
-    const { data: updated, error } = await admin
-      .from("audits")
-      .update({
-        ops_job_id: job.job_id,
-        status: "queued",
-        error_message: null,
-      })
-      .eq("id", audit.id)
-      .select("*")
-      .single();
-
-    if (error || !updated) {
-      throw new Error(error?.message ?? "Failed to save job id");
-    }
-
-    return updated as AuditRecord;
+    return updateAuditRow(client, audit.id, {
+      ops_job_id: job.job_id,
+      status: "queued",
+      error_message: null,
+    });
   } catch (e) {
     console.error("Failed to enqueue full audit:", e);
     const message = enqueueErrorMessage(e);
 
-    const { data: updated } = await admin
-      .from("audits")
-      .update({
+    try {
+      return await updateAuditRow(client, audit.id, {
         status: "failed",
         error_message: message,
-      })
-      .eq("id", audit.id)
-      .select("*")
-      .single();
-
-    return (updated ?? {
-      ...audit,
-      status: "failed",
-      error_message: message,
-    }) as AuditRecord;
+      });
+    } catch (updateError) {
+      console.error("Failed to persist enqueue error:", updateError);
+      return {
+        ...audit,
+        status: "failed",
+        error_message: message,
+      };
+    }
   }
 }
 
 export async function retryFullAuditEnqueue(
-  audit: AuditRecord
+  audit: AuditRecord,
+  client: SupabaseClient
 ): Promise<AuditRecord> {
   if (audit.tier !== "paid" || audit.status === "completed") {
     return audit;
   }
 
-  const admin = createAdminClient();
-  const { data: reset, error } = await admin
-    .from("audits")
-    .update({
-      status: "queued",
-      error_message: null,
-      ops_job_id: null,
-    })
-    .eq("id", audit.id)
-    .select("*")
-    .single();
+  const reset = await updateAuditRow(client, audit.id, {
+    status: "queued",
+    error_message: null,
+    ops_job_id: null,
+  });
 
-  if (error || !reset) {
-    throw new Error(error?.message ?? "Failed to reset audit");
-  }
+  return ensureFullAuditEnqueued(reset, client);
+}
 
-  return ensureFullAuditEnqueued(reset as AuditRecord);
+/** Server-side paths without a user session (e.g. Stripe webhooks). */
+export function createServiceClient(): SupabaseClient {
+  return createAdminClient();
 }

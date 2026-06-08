@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getJob } from "@/lib/geo-ops/client";
 import type { AuditRecord, AuditStatus, JobStatus } from "@/lib/types/audit";
@@ -11,7 +12,8 @@ const OPS_TO_AUDIT_STATUS: Record<JobStatus, AuditStatus> = {
 };
 
 export async function syncAuditFromOpsJob(
-  audit: AuditRecord
+  audit: AuditRecord,
+  client?: SupabaseClient
 ): Promise<AuditRecord> {
   if (
     audit.tier !== "paid" ||
@@ -25,7 +27,7 @@ export async function syncAuditFromOpsJob(
   const job = await getJob(audit.ops_job_id);
   const status = OPS_TO_AUDIT_STATUS[job.status];
 
-  const admin = createAdminClient();
+  const db = client ?? createAdminClient();
   const updates: Record<string, unknown> = {
     status,
     duration_ms: job.duration_ms,
@@ -37,7 +39,7 @@ export async function syncAuditFromOpsJob(
     updates.completed_at = job.completed_at ?? new Date().toISOString();
   }
 
-  const { data: updated, error } = await admin
+  const { data: updated, error } = await db
     .from("audits")
     .update(updates)
     .eq("id", audit.id)
@@ -56,7 +58,7 @@ export async function syncAuditFromOpsJob(
     !synced.pdf_path
   ) {
     await deliverCompletedReport(synced);
-    const { data: redelivered } = await admin
+    const { data: redelivered } = await db
       .from("audits")
       .select("*")
       .eq("id", audit.id)
