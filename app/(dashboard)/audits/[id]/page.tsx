@@ -136,6 +136,8 @@ export default function AuditDetailPage({
   const summary = audit.quick_summary;
   const scoreMeta = summary?.score;
   const tier = scoreMeta?.tier ?? scoreTierFromValue(audit.quick_score ?? 0);
+  const hasFullReport =
+    audit.full_report != null && audit.status === "completed";
 
   return (
     <div className="space-y-8">
@@ -165,18 +167,30 @@ export default function AuditDetailPage({
       )}
 
       {audit.quick_score != null && (
-        <div className="grid gap-6 xl:grid-cols-3">
-          <AuditScoreCard
-            score={audit.quick_score}
-            tier={tier}
-            breakdown={scoreMeta?.breakdown}
-          />
-          {summary && (
-            <QuickWinsList
-              wins={summary.quick_wins ?? []}
-              insights={summary.insights}
-            />
+        <div className="space-y-4">
+          {hasFullReport && (
+            <div className="rounded-lg border border-[#d4e0ed] bg-white px-4 py-3 text-sm text-muted-foreground">
+              <span className="font-medium text-[#0b2a5b]">Free scan snapshot</span>
+              {" · "}
+              Quick results from your 60-second scan ({audit.quick_score}/100). See the full
+              audit report below for the comprehensive score.
+            </div>
           )}
+          <div className={`grid gap-6 ${hasFullReport ? "xl:grid-cols-2" : "xl:grid-cols-3"}`}>
+            {!hasFullReport && (
+              <AuditScoreCard
+                score={audit.quick_score}
+                tier={tier}
+                breakdown={scoreMeta?.breakdown}
+              />
+            )}
+            {summary && (
+              <QuickWinsList
+                wins={summary.quick_wins ?? []}
+                insights={summary.insights}
+              />
+            )}
+          </div>
         </div>
       )}
 
@@ -205,8 +219,13 @@ export default function AuditDetailPage({
         </Alert>
       )}
 
-      {audit.full_report && audit.status === "completed" && (
-        <FullReportView report={audit.full_report} onDownload={canDownloadPdf ? downloadReport : undefined} pdfLoading={pdfLoading} />
+      {hasFullReport && audit.full_report && (
+        <FullReportView
+          report={audit.full_report}
+          snapshotScore={audit.quick_score}
+          onDownload={canDownloadPdf ? downloadReport : undefined}
+          pdfLoading={pdfLoading}
+        />
       )}
 
       {!audit.unlocked && audit.tier !== "paid" && audit.quick_score != null && (

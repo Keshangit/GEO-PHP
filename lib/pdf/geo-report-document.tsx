@@ -7,6 +7,15 @@ import {
 } from "@react-pdf/renderer";
 import type { FullAuditReport } from "@/lib/types/audit";
 import { WC_BRAND } from "@/lib/pdf/brand";
+import {
+  formatPlatformDescription,
+  formatPlatformName,
+  formatScoreDescription,
+  formatScoreLabel,
+  formatScoreWeight,
+  orderedPlatformEntries,
+  orderedScoreEntries,
+} from "@/lib/reports/labels";
 
 const styles = StyleSheet.create({
   page: {
@@ -81,24 +90,76 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: WC_BRAND.blue,
   },
+  sectionIntro: {
+    fontSize: 9,
+    color: WC_BRAND.muted,
+    lineHeight: 1.45,
+    marginBottom: 10,
+  },
   body: {
     lineHeight: 1.5,
     marginBottom: 6,
   },
-  tableRow: {
-    flexDirection: "row",
+  categoryBlock: {
+    marginBottom: 10,
+    paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#DDDDDD",
-    paddingVertical: 5,
+    borderBottomColor: "#E5E7EB",
   },
-  tableHeader: {
-    backgroundColor: WC_BRAND.lightBg,
+  categoryHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 3,
+  },
+  categoryTitle: {
+    flex: 1,
+    fontSize: 10,
     fontWeight: "bold",
-    fontSize: 8,
-    textTransform: "uppercase",
+    color: WC_BRAND.navy,
   },
-  tableCellLabel: { flex: 2 },
-  tableCellValue: { flex: 1, fontWeight: "bold" },
+  categoryMeta: {
+    fontSize: 8,
+    color: WC_BRAND.muted,
+    marginTop: 1,
+  },
+  categoryScore: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: WC_BRAND.orange,
+    marginLeft: 8,
+  },
+  categoryDescription: {
+    fontSize: 9,
+    color: WC_BRAND.muted,
+    lineHeight: 1.45,
+  },
+  platformBlock: {
+    marginBottom: 8,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  platformHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 2,
+  },
+  platformTitle: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: WC_BRAND.navy,
+  },
+  platformScore: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: WC_BRAND.navy,
+  },
+  platformDescription: {
+    fontSize: 9,
+    color: WC_BRAND.muted,
+    lineHeight: 1.45,
+  },
   finding: {
     marginBottom: 8,
     paddingLeft: 8,
@@ -125,15 +186,6 @@ const styles = StyleSheet.create({
   },
 });
 
-const SCORE_LABELS: Record<string, string> = {
-  ai_citability: "AI Citability & Visibility",
-  brand_authority: "Brand Authority Signals",
-  content_eeat: "Content Quality & E-E-A-T",
-  technical: "Technical GEO",
-  schema: "Structured Data",
-  platform_optimization: "Platform Optimization",
-};
-
 interface GeoReportDocumentProps {
   domain: string;
   url: string;
@@ -143,7 +195,9 @@ interface GeoReportDocumentProps {
 function PageFooter({ date }: { date: string }) {
   return (
     <View style={styles.footer} fixed>
-      <Text>{WC_BRAND.agencyName} · {WC_BRAND.website}</Text>
+      <Text>
+        {WC_BRAND.agencyName} · {WC_BRAND.website}
+      </Text>
       <Text>GEO Audit Report · {date}</Text>
     </View>
   );
@@ -176,10 +230,14 @@ export function GeoReportDocument({
         <View style={styles.accentLine} />
         <Text style={styles.title}>GEO Audit Report</Text>
         <Text style={styles.meta}>
-          Domain: {domain}{"\n"}
-          URL: {url}{"\n"}
-          Brand: {report.brand_name || domain}{"\n"}
-          Generated: {date}{"\n"}
+          Domain: {domain}
+          {"\n"}
+          URL: {url}
+          {"\n"}
+          Brand: {report.brand_name || domain}
+          {"\n"}
+          Generated: {date}
+          {"\n"}
           Methodology: geo-seo-claude (Generative Engine Optimization)
         </Text>
         <View style={styles.scoreBadge}>
@@ -193,24 +251,43 @@ export function GeoReportDocument({
       <Page size="A4" style={styles.page}>
         <PageHeader />
         <Text style={styles.sectionTitle}>Category Scores</Text>
-        <View style={[styles.tableRow, styles.tableHeader]}>
-          <Text style={styles.tableCellLabel}>Category</Text>
-          <Text style={styles.tableCellValue}>Score</Text>
-        </View>
-        {Object.entries(report.scores).map(([key, value]) => (
-          <View key={key} style={styles.tableRow}>
-            <Text style={styles.tableCellLabel}>
-              {SCORE_LABELS[key] ?? key.replace(/_/g, " ")}
-            </Text>
-            <Text style={styles.tableCellValue}>{value}/100</Text>
+        <Text style={styles.sectionIntro}>
+          The overall GEO score is a weighted average of six categories. Each score
+          reflects how well your site performs in that area for AI search visibility.
+        </Text>
+        {orderedScoreEntries(report.scores).map(([key, value]) => (
+          <View key={key} style={styles.categoryBlock}>
+            <View style={styles.categoryHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.categoryTitle}>{formatScoreLabel(key, "pdf")}</Text>
+                <Text style={styles.categoryMeta}>
+                  Weight in overall score: {formatScoreWeight(key)}
+                </Text>
+              </View>
+              <Text style={styles.categoryScore}>{value}/100</Text>
+            </View>
+            <Text style={styles.categoryDescription}>{formatScoreDescription(key)}</Text>
           </View>
         ))}
+        <PageFooter date={date} />
+      </Page>
 
+      <Page size="A4" style={styles.page}>
+        <PageHeader />
         <Text style={styles.sectionTitle}>AI Platform Scores</Text>
-        {Object.entries(report.platforms).map(([platform, score]) => (
-          <View key={platform} style={styles.tableRow}>
-            <Text style={styles.tableCellLabel}>{platform}</Text>
-            <Text style={styles.tableCellValue}>{score}</Text>
+        <Text style={styles.sectionIntro}>
+          Estimated readiness for citation and visibility on major AI search platforms.
+          Higher scores indicate stronger alignment with each platform's sourcing signals.
+        </Text>
+        {orderedPlatformEntries(report.platforms).map(([platform, score]) => (
+          <View key={platform} style={styles.platformBlock}>
+            <View style={styles.platformHeader}>
+              <Text style={styles.platformTitle}>{formatPlatformName(platform)}</Text>
+              <Text style={styles.platformScore}>{score}/100</Text>
+            </View>
+            <Text style={styles.platformDescription}>
+              {formatPlatformDescription(platform)}
+            </Text>
           </View>
         ))}
         <PageFooter date={date} />
