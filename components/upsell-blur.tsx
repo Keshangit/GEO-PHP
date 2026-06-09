@@ -51,7 +51,7 @@ export function UpsellBlur({ auditId, domain }: UpsellBlurProps) {
           size="lg"
           className="btn-brand px-8"
           onClick={handleCheckout}
-          disabled={loading}
+          loading={loading}
         >
           {loading ? "Redirecting…" : "Unlock for €9"}
         </Button>

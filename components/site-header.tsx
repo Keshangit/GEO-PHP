@@ -1,18 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useNavigationLoading } from "@/components/navigation-loading-provider";
 
 export function SiteHeader({ email }: { email?: string | null }) {
   const router = useRouter();
+  const { startNavigation } = useNavigationLoading();
+  const [signingOut, setSigningOut] = useState(false);
 
   async function signOut() {
-    const supabase = await createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
+    setSigningOut(true);
+    try {
+      const supabase = await createClient();
+      await supabase.auth.signOut();
+      startNavigation();
+      router.push("/");
+      router.refresh();
+    } finally {
+      setSigningOut(false);
+    }
   }
 
   return (
@@ -41,6 +51,7 @@ export function SiteHeader({ email }: { email?: string | null }) {
                 variant="outline"
                 size="sm"
                 onClick={signOut}
+                loading={signingOut}
                 className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
               >
                 Sign out

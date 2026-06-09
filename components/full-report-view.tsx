@@ -81,7 +81,7 @@ export function FullReportView({
             <Button
               className="btn-brand shrink-0"
               onClick={onDownload}
-              disabled={pdfLoading}
+              loading={pdfLoading}
             >
               <Download className="size-4" />
               {pdfLoading ? "Generating…" : "Download PDF"}

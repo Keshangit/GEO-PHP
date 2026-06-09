@@ -121,6 +121,36 @@
     background: linear-gradient(90deg, #3eb1f1 0%, #ee810a 100%);
     animation: report-loading-slide 1.6s ease-in-out infinite;
   }
+
+  .navigation-progress-track {
+    @apply pointer-events-none fixed inset-x-0 top-0 z-[100] h-1 overflow-hidden bg-[#dce6f2];
+  }
+
+  .navigation-progress-bar {
+    @apply h-full w-2/5 rounded-full;
+    background: linear-gradient(90deg, #3eb1f1 0%, #ee810a 100%);
+    animation: navigation-progress-slide 1.1s ease-in-out infinite;
+  }
+
+  .navigation-busy-indicator {
+    @apply pointer-events-none fixed top-20 left-1/2 z-[100] flex -translate-x-1/2 items-center gap-2 rounded-full border border-[#d4e0ed] bg-white px-4 py-2 text-sm font-medium text-[#0b2a5b] shadow-lg;
+  }
+}
+
+@keyframes navigation-progress-slide {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(320%);
+    opacity: 0.7;
+  }
 }
 
 @keyframes report-loading-slide {

@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useNavigationLoading } from "@/components/navigation-loading-provider";
 
 interface AuthFormProps {
   mode: "login" | "signup";
@@ -26,6 +27,7 @@ const AUTH_TIMEOUT_MS = 30_000;
 
 export function AuthForm({ mode, error }: AuthFormProps) {
   const router = useRouter();
+  const { startNavigation } = useNavigationLoading();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -84,14 +86,15 @@ export function AuthForm({ mode, error }: AuthFormProps) {
 
       if (authError) {
         setMessage(authError.message);
+        setLoading(false);
         return;
       }
 
+      startNavigation();
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Authentication failed");
-    } finally {
       setLoading(false);
     }
   }
@@ -159,7 +162,8 @@ export function AuthForm({ mode, error }: AuthFormProps) {
           <Button
             type="submit"
             className="btn-brand w-full"
-            disabled={loading || !configOk}
+            loading={loading}
+            disabled={!configOk}
           >
             {loading ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
           </Button>

@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useNavigationLoading } from "@/components/navigation-loading-provider";
 
 export default function ScanPage() {
   const router = useRouter();
+  const { startNavigation } = useNavigationLoading();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -31,6 +33,7 @@ export default function ScanPage() {
         throw new Error(data.error ?? "Scan failed");
       }
 
+      startNavigation();
       router.push(`/audits/${data.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Scan failed");
@@ -72,7 +75,7 @@ export default function ScanPage() {
             <Button
               type="submit"
               className="btn-brand w-full"
-              disabled={loading}
+              loading={loading}
             >
               {loading ? "Scanning… (up to 60s)" : "Run free scan"}
             </Button>

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { NavigationLoadingProvider } from "@/components/navigation-loading-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased" style={{ colorScheme: "light" }}>
       <body className="page-shell min-h-full flex flex-col font-sans">
-        {children}
+        <NavigationLoadingProvider>{children}</NavigationLoadingProvider>
       </body>
     </html>
   );

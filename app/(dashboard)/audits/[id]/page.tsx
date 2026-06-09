@@ -9,6 +9,7 @@ import { JobPolling } from "@/components/job-polling";
 import { FullReportView } from "@/components/full-report-view";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PageLoadingState } from "@/components/page-loading-state";
 import type {
   FullAuditReport,
   QuickAuditResponse,
@@ -117,7 +118,7 @@ export default function AuditDetailPage({
   }
 
   if (loading) {
-    return <p className="text-muted-foreground">Loading audit…</p>;
+    return <PageLoadingState message="Loading audit…" />;
   }
 
   if (error || !audit) {
@@ -153,7 +154,7 @@ export default function AuditDetailPage({
           <Button
             onClick={downloadReport}
             className="btn-brand"
-            disabled={pdfLoading}
+            loading={pdfLoading}
           >
             {pdfLoading ? "Generating PDF…" : "Download PDF Report"}
           </Button>
@@ -210,7 +211,7 @@ export default function AuditDetailPage({
                 size="sm"
                 className="btn-brand shrink-0"
                 onClick={retryReport}
-                disabled={retryLoading}
+                loading={retryLoading}
               >
                 {retryLoading ? "Retrying…" : "Retry report"}
               </Button>
