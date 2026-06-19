@@ -13,6 +13,8 @@ interface PremiumReportLoaderProps {
   unlocked: boolean;
   tier: string;
   hasFullReport: boolean;
+  paidAt?: string | null;
+  stripeSessionId?: string | null;
   paymentJustCompleted?: boolean;
   onUpdate?: () => void;
 }
@@ -92,6 +94,8 @@ export function PremiumReportLoader({
   unlocked,
   tier,
   hasFullReport,
+  paidAt = null,
+  stripeSessionId = null,
   paymentJustCompleted = false,
   onUpdate,
 }: PremiumReportLoaderProps) {
@@ -101,8 +105,17 @@ export function PremiumReportLoader({
     setLiveStatus(status);
   }, [status]);
 
-  const isPremiumPending =
-    (unlocked || tier === "paid") && !hasFullReport && liveStatus !== "failed";
+  const isPremiumPending = isPremiumReportPending(
+    {
+      unlocked,
+      tier,
+      status: liveStatus,
+      full_report: hasFullReport ? {} : null,
+      paid_at: paidAt,
+      stripe_session_id: stripeSessionId,
+    },
+    paymentJustCompleted
+  );
 
   useEffect(() => {
     if (!isPremiumPending) return;
@@ -174,15 +187,42 @@ export function PremiumReportLoader({
   );
 }
 
-export function isPremiumReportPending(audit: {
-  unlocked: boolean;
-  tier: string;
-  status: string;
-  full_report: unknown | null;
-}): boolean {
+export function isPremiumReportPending(
+  audit: {
+    unlocked: boolean;
+    tier: string;
+    status: string;
+    full_report: unknown | null;
+    paid_at?: string | null;
+    stripe_session_id?: string | null;
+  },
+  paymentJustCompleted = false
+): boolean {
+  const hasFullReport =
+    audit.full_report != null && audit.status === "completed";
+
+  if (hasFullReport || audit.status === "failed") {
+    return false;
+  }
+
+  if (paymentJustCompleted) {
+    return true;
+  }
+
+  if (audit.unlocked || audit.paid_at) {
+    return true;
+  }
+
+  if (
+    audit.tier === "paid" &&
+    audit.stripe_session_id &&
+    !audit.paid_at
+  ) {
+    return true;
+  }
+
   return (
-    (audit.unlocked || audit.tier === "paid") &&
-    !(audit.full_report != null && audit.status === "completed") &&
-    audit.status !== "failed"
+    audit.tier === "paid" &&
+    ["queued", "processing", "pending"].includes(audit.status)
   );
 }

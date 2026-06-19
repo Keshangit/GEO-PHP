@@ -120,7 +120,7 @@ export async function POST(request: Request) {
 
   await supabase
     .from("audits")
-    .update({ stripe_session_id: session.id, tier: "paid" })
+    .update({ stripe_session_id: session.id })
     .eq("id", audit.id);
 
   return NextResponse.json({ checkout_url: session.url });

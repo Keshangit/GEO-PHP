@@ -28,6 +28,8 @@ interface AuditDetail {
   tier: string;
   status: string;
   ops_job_id: string | null;
+  paid_at: string | null;
+  stripe_session_id: string | null;
   quick_score: number | null;
   quick_summary: StoredQuickSummary | null;
   full_report: FullAuditReport | null;
@@ -148,7 +150,7 @@ export default function AuditDetailPage({
   const tier = scoreMeta?.tier ?? scoreTierFromValue(audit.quick_score ?? 0);
   const hasFullReport =
     audit.full_report != null && audit.status === "completed";
-  const premiumPending = isPremiumReportPending(audit);
+  const premiumPending = isPremiumReportPending(audit, paymentJustCompleted);
 
   return (
     <div className="space-y-8">
@@ -184,6 +186,8 @@ export default function AuditDetailPage({
         unlocked={audit.unlocked}
         tier={audit.tier}
         hasFullReport={hasFullReport}
+        paidAt={audit.paid_at}
+        stripeSessionId={audit.stripe_session_id}
         paymentJustCompleted={paymentJustCompleted}
         onUpdate={() => {
           setPaymentJustCompleted(false);
@@ -246,7 +250,7 @@ export default function AuditDetailPage({
         />
       )}
 
-      {!audit.unlocked && audit.tier !== "paid" && audit.quick_score != null && (
+      {!audit.unlocked && audit.tier !== "paid" && !audit.paid_at && audit.quick_score != null && (
         <UpsellBlur auditId={audit.id} domain={audit.domain} />
       )}
     </div>

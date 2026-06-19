@@ -35,12 +35,13 @@ export async function ensureFullAuditEnqueued(
   audit: AuditRecord,
   client: SupabaseClient
 ): Promise<AuditRecord> {
-  if (
-    audit.tier !== "paid" ||
-    audit.ops_job_id ||
-    audit.status === "completed" ||
-    audit.status === "failed"
-  ) {
+  const needsEnqueue =
+    audit.tier === "paid" &&
+    !audit.ops_job_id &&
+    !audit.full_report &&
+    audit.status !== "failed";
+
+  if (!needsEnqueue) {
     return audit;
   }
 
@@ -75,7 +76,11 @@ export async function retryFullAuditEnqueue(
   audit: AuditRecord,
   client: SupabaseClient
 ): Promise<AuditRecord> {
-  if (audit.tier !== "paid" || audit.status === "completed") {
+  if (audit.tier !== "paid") {
+    return audit;
+  }
+
+  if (audit.full_report && audit.status === "completed") {
     return audit;
   }
 

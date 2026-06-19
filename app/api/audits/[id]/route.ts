@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/api/auth";
+import { confirmAuditPayment } from "@/lib/audits/fulfill-payment";
 import { ensureFullAuditEnqueued } from "@/lib/audits/ensure-enqueued";
 import { syncAuditFromOpsJob } from "@/lib/audits/sync-job";
 import type { AuditRecord } from "@/lib/types/audit";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const { searchParams } = new URL(request.url);
+  const sessionId = searchParams.get("session_id");
+
   const { user, supabase, response } = await requireUser();
   if (response) return response;
 
@@ -25,7 +29,21 @@ export async function GET(
 
   let record = audit as AuditRecord;
 
-  if (record.tier === "paid" && !record.ops_job_id && record.status !== "completed") {
+  if (record.stripe_session_id && !record.paid_at) {
+    try {
+      record = await confirmAuditPayment(record, user!.id, sessionId);
+    } catch (e) {
+      console.error("Payment confirm failed:", e);
+    }
+  }
+
+  const needsEnqueue =
+    record.tier === "paid" &&
+    !record.ops_job_id &&
+    !record.full_report &&
+    record.status !== "failed";
+
+  if (needsEnqueue) {
     try {
       record = await ensureFullAuditEnqueued(record, supabase);
     } catch (e) {
