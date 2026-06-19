@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AuditScoreCard } from "@/components/audit-score-card";
 import { QuickWinsList } from "@/components/quick-wins-list";
 import { UpsellBlur } from "@/components/upsell-blur";
-import { JobPolling } from "@/components/job-polling";
+import { PremiumReportLoader, isPremiumReportPending } from "@/components/premium-report-loader";
 import { FullReportView } from "@/components/full-report-view";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -56,6 +56,7 @@ export default function AuditDetailPage({
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
   const [retryLoading, setRetryLoading] = useState(false);
+  const [paymentJustCompleted, setPaymentJustCompleted] = useState(false);
 
   const loadAudit = useCallback(async (id: string) => {
     const res = await fetch(`/api/audits/${id}`);
@@ -75,6 +76,14 @@ export default function AuditDetailPage({
       loadAudit(id);
     });
   }, [params, loadAudit]);
+
+  useEffect(() => {
+    const sessionId = new URLSearchParams(window.location.search).get("session_id");
+    if (sessionId) {
+      setPaymentJustCompleted(true);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
 
   async function retryReport() {
     if (!auditId) return;
@@ -139,6 +148,7 @@ export default function AuditDetailPage({
   const tier = scoreMeta?.tier ?? scoreTierFromValue(audit.quick_score ?? 0);
   const hasFullReport =
     audit.full_report != null && audit.status === "completed";
+  const premiumPending = isPremiumReportPending(audit);
 
   return (
     <div className="space-y-8">
@@ -167,6 +177,20 @@ export default function AuditDetailPage({
         </Alert>
       )}
 
+      <PremiumReportLoader
+        auditId={audit.id}
+        status={audit.status as AuditStatus}
+        opsJobId={audit.ops_job_id}
+        unlocked={audit.unlocked}
+        tier={audit.tier}
+        hasFullReport={hasFullReport}
+        paymentJustCompleted={paymentJustCompleted}
+        onUpdate={() => {
+          setPaymentJustCompleted(false);
+          loadAudit(audit.id);
+        }}
+      />
+
       {audit.quick_score != null && (
         <div className="space-y-4">
           {hasFullReport && (
@@ -177,8 +201,8 @@ export default function AuditDetailPage({
               audit report below for the comprehensive score.
             </div>
           )}
-          <div className={`grid gap-6 ${hasFullReport ? "xl:grid-cols-2" : "xl:grid-cols-3"}`}>
-            {!hasFullReport && (
+          <div className={`grid gap-6 ${hasFullReport ? "xl:grid-cols-2" : premiumPending ? "xl:grid-cols-2 opacity-80" : "xl:grid-cols-3"}`}>
+            {!hasFullReport && !premiumPending && (
               <AuditScoreCard
                 score={audit.quick_score}
                 tier={tier}
@@ -194,13 +218,6 @@ export default function AuditDetailPage({
           </div>
         </div>
       )}
-
-      <JobPolling
-        auditId={audit.id}
-        initialStatus={audit.status as AuditStatus}
-        opsJobId={audit.ops_job_id}
-        onUpdate={() => loadAudit(audit.id)}
-      />
 
       {audit.status === "failed" && audit.error_message && (
         <Alert variant="destructive" className="border-red-200 bg-red-50">
